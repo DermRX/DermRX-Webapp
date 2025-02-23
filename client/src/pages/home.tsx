@@ -6,6 +6,25 @@ import { ResultsDisplay } from "@/components/results-display";
 import { Link } from "wouter";
 import type { Analysis } from "@shared/schema";
 
+// Placeholder components - these need to be implemented
+const PatientTimeline = ({ analyses }: { analyses: any[] }) => (
+  <div>
+    {/* Implement timeline visualization here */}
+    <p>Patient Timeline (Placeholder)</p>
+    {analyses.map((analysis) => (
+      <div key={analysis.id}>{analysis.id}</div>
+    ))}
+  </div>
+);
+
+const LesionTracking = ({ analysis }: { analysis: any }) => (
+  <div>
+    {/* Implement lesion tracking visualization here */}
+    <p>Lesion Tracking (Placeholder)</p>
+  </div>
+);
+
+
 export default function Home() {
   const { data: analyses, isLoading } = useQuery<Analysis[]>({
     queryKey: ["/api/analyses/demo-patient"],
@@ -29,6 +48,10 @@ export default function Home() {
         </Card>
 
         <h2 className="text-2xl font-bold mb-4">Previous Analyses</h2>
+        <div className="max-w-4xl">
+          <h2 className="text-2xl font-semibold mb-4">Patient History</h2>
+          <PatientTimeline analyses={analyses || []} />
+        </div>
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (

@@ -62,6 +62,9 @@ export function LesionModal({ lesion, onClose }: LesionModalProps) {
             {risk.icon}
             <span>{formatLesionType(lesion.classification)}</span>
           </DialogTitle>
+          <div className="mt-4">
+            <LesionTracking lesion={lesion} />
+          </div>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
