@@ -18,11 +18,11 @@ export class MemStorage implements IStorage {
   async createAnalysis(insertAnalysis: InsertAnalysis): Promise<Analysis> {
     const id = this.currentId++;
     const analysis: Analysis = {
-      ...insertAnalysis,
       id,
+      patientId: insertAnalysis.patientId,
+      imageUrl: insertAnalysis.imageUrl,
+      detectedLesions: insertAnalysis.detectedLesions || null,
       createdAt: new Date(),
-      // Ensure result is typed correctly according to schema
-      result: insertAnalysis.result || null,
     };
     this.analyses.set(id, analysis);
     return analysis;

@@ -33,16 +33,16 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/analyze", async (req, res) => {
     try {
-      const { imageBase64, patientId, lesions } = req.body;
+      const { imageBase64, patientId } = req.body;
 
-      // Analyze each lesion (both detected and manually added)
-      const analyzedLesions = await analyzeSkinLesion(imageBase64, lesions); // Assuming analyzeSkinLesion is updated to handle lesions
+      // Analyze skin lesions
+      const detectedLesions = await analyzeSkinLesion(imageBase64);
 
       // Store analysis results
       const analysis = await storage.createAnalysis({
         patientId,
         imageUrl: `data:image/jpeg;base64,${imageBase64}`,
-        analyzedLesions // Use analyzedLesions instead of detectedLesions
+        detectedLesions
       });
 
       res.json(analysis);
