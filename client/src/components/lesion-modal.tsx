@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
+import { ScheduleAppointment } from "./schedule-appointment";
 import type { DetectedLesion } from "@shared/schema";
 
 interface LesionModalProps {
@@ -62,7 +63,7 @@ export function LesionModal({ lesion, onClose }: LesionModalProps) {
             <span>{formatLesionType(lesion.classification)}</span>
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           {/* Confidence Score */}
           <div className="space-y-2">
@@ -99,6 +100,14 @@ export function LesionModal({ lesion, onClose }: LesionModalProps) {
                 <p>Height: {Math.round(lesion.boundingBox.height * 100)}%</p>
               </div>
             </div>
+          </div>
+
+          {/* Schedule Follow-up */}
+          <div className="pt-4 border-t">
+            <ScheduleAppointment
+              lesionId={lesion.id}
+              classification={lesion.classification}
+            />
           </div>
         </div>
       </DialogContent>
