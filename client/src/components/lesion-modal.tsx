@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
+import { LesionTracking } from "./lesion-tracking";
 import { ScheduleAppointment } from "./schedule-appointment";
 import type { DetectedLesion } from "@shared/schema";
 

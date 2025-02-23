@@ -1,6 +1,7 @@
 
-import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
+import type { DetectedLesion } from '@shared/schema';
+import { useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +12,6 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import type { DetectedLesion } from '@shared/schema';
 
 ChartJS.register(
   CategoryScale,
@@ -40,7 +40,7 @@ export function LesionTracking({ lesion }: LesionTrackingProps) {
       const size = baseSize * (1 + (growthRate * i));
       return {
         date: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        size
+        size: Number(size.toFixed(2))
       };
     }).reverse();
 
@@ -57,26 +57,24 @@ export function LesionTracking({ lesion }: LesionTrackingProps) {
   }, [lesion]);
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-4">Growth Tracking</h3>
-      <div className="h-[200px]">
-        <Line
-          data={trackingData}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Size (cm²)'
-                }
-              }
+    <div className="mt-4 p-4 border rounded-lg bg-background">
+      <h3 className="font-medium mb-4">Growth Tracking</h3>
+      <Line
+        data={trackingData}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
             }
-          }}
-        />
-      </div>
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }}
+      />
     </div>
   );
 }
