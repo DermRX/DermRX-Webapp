@@ -2,22 +2,40 @@ import { pgTable, text, serial, json, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export type BoundingBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type LesionType = 
+  | "melanoma" 
+  | "nevus"
+  | "basal_cell_carcinoma"
+  | "squamous_cell_carcinoma"
+  | "actinic_keratosis"
+  | "seborrheic_keratosis";
+
+export type DetectedLesion = {
+  id: string;
+  boundingBox: BoundingBox;
+  classification: LesionType;
+  confidence: number;
+};
+
 export const analyses = pgTable("analyses", {
   id: serial("id").primaryKey(),
   patientId: text("patient_id").notNull(),
   imageUrl: text("image_url").notNull(),
-  result: json("result").$type<{
-    diagnosis: string;
-    confidence: number;
-    details: string;
-  }>(),
+  detectedLesions: json("detected_lesions").$type<DetectedLesion[]>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertAnalysisSchema = createInsertSchema(analyses).pick({
   patientId: true,
   imageUrl: true,
-  result: true,
+  detectedLesions: true,
 });
 
 export type Analysis = typeof analyses.$inferSelect;

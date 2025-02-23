@@ -10,13 +10,13 @@ export async function registerRoutes(app: Express) {
       const { imageBase64, patientId } = req.body;
 
       // Analyze image with AI
-      const result = await analyzeSkinLesion(imageBase64);
+      const detectedLesions = await analyzeSkinLesion(imageBase64);
 
       // Store analysis results
       const analysis = await storage.createAnalysis({
         patientId,
         imageUrl: `data:image/jpeg;base64,${imageBase64}`,
-        result
+        detectedLesions
       });
 
       res.json(analysis);

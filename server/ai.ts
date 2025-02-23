@@ -1,38 +1,37 @@
-import OpenAI from "openai";
+import type { DetectedLesion, LesionType } from "@shared/schema";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function generateRandomBoundingBox() {
+  return {
+    x: Math.random() * 0.8, // Normalized coordinates (0-1)
+    y: Math.random() * 0.8,
+    width: Math.random() * 0.2 + 0.1, // 10-30% of image width
+    height: Math.random() * 0.2 + 0.1, // 10-30% of image height
+  };
+}
 
-export async function analyzeSkinLesion(imageBase64: string): Promise<{
-  diagnosis: string;
-  confidence: number;
-  details: string;
-}> {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content: "You are a dermatology AI assistant specialized in melanoma detection. Analyze the image and provide a detailed assessment in JSON format with fields: diagnosis (string), confidence (number 0-1), details (string)."
-      },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: "Please analyze this skin lesion image for melanoma indicators:" },
-          {
-            type: "image_url",
-            image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
-          }
-        ]
-      }
-    ],
-    response_format: { type: "json_object" }
-  });
+function getRandomLesionType(): LesionType {
+  const types: LesionType[] = [
+    "melanoma",
+    "nevus",
+    "basal_cell_carcinoma",
+    "squamous_cell_carcinoma",
+    "actinic_keratosis",
+    "seborrheic_keratosis"
+  ];
+  return types[Math.floor(Math.random() * types.length)];
+}
 
-  // Ensure we have a valid response
-  if (!response.choices[0].message.content) {
-    throw new Error("No analysis results received from AI");
-  }
+export async function analyzeSkinLesion(imageBase64: string): Promise<DetectedLesion[]> {
+  // Simulate processing delay
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
-  return JSON.parse(response.choices[0].message.content);
+  // Generate 1-3 random lesion detections
+  const numLesions = Math.floor(Math.random() * 3) + 1;
+
+  return Array.from({ length: numLesions }, (_, i) => ({
+    id: `lesion-${i + 1}`,
+    boundingBox: generateRandomBoundingBox(),
+    classification: getRandomLesionType(),
+    confidence: Math.random() * 0.5 + 0.5, // 50-100% confidence
+  }));
 }
