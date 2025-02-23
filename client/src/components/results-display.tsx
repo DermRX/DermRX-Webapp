@@ -5,18 +5,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AlertCircle, AlertTriangle, CheckCircle, Maximize2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle, Maximize2, Eye, EyeOff } from "lucide-react";
 import type { Analysis, DetectedLesion } from "@shared/schema";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { LesionModal } from "./lesion-modal";
 import { Button } from "./ui/button";
+import { HeatMapOverlay } from "./heat-map-overlay";
 
 interface ResultsDisplayProps {
   analysis: Analysis;
 }
 
 function formatLesionType(type: string): string {
-  return type.split('_').map(word => 
+  return type.split('_').map(word =>
     word.charAt(0).toUpperCase() + word.slice(1)
   ).join(' ');
 }
@@ -49,6 +50,9 @@ function getRiskLevel(lesion: DetectedLesion): {
 export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
   const [selectedLesion, setSelectedLesion] = useState<DetectedLesion | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [isHeatMapVisible, setIsHeatMapVisible] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   if (!analysis.detectedLesions || analysis.detectedLesions.length === 0) {
     return (
@@ -95,7 +99,19 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
       {/* Image with bounding boxes */}
       <Card className="p-4">
         <div className={`relative ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}>
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-4 right-4 z-10 flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsHeatMapVisible(!isHeatMapVisible)}
+              title={isHeatMapVisible ? "Hide heat map" : "Show heat map"}
+            >
+              {isHeatMapVisible ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -105,42 +121,59 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
             </Button>
           </div>
           <div className={`relative ${isZoomed ? 'overflow-auto h-[80vh]' : ''}`}>
-            <img 
-              src={analysis.imageUrl} 
-              alt="Analyzed skin image"
-              className={`rounded-lg ${isZoomed ? 'scale-150 transform-gpu' : 'w-full'}`}
-            />
-            <TooltipProvider>
-              {analysis.detectedLesions.map((lesion) => {
-                const { x, y, width, height } = lesion.boundingBox;
-                const risk = getRiskLevel(lesion);
+            <div ref={imageContainerRef} className="relative">
+              <img
+                src={analysis.imageUrl}
+                alt="Analyzed skin image"
+                className={`rounded-lg ${isZoomed ? 'scale-150 transform-gpu' : 'w-full'}`}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  setImageDimensions({
+                    width: img.clientWidth,
+                    height: img.clientHeight
+                  });
+                }}
+              />
+              {imageDimensions && (
+                <HeatMapOverlay
+                  lesions={analysis.detectedLesions}
+                  width={imageDimensions.width}
+                  height={imageDimensions.height}
+                  visible={isHeatMapVisible}
+                />
+              )}
+              <TooltipProvider>
+                {!isHeatMapVisible && analysis.detectedLesions.map((lesion) => {
+                  const { x, y, width, height } = lesion.boundingBox;
+                  const risk = getRiskLevel(lesion);
 
-                return (
-                  <Tooltip key={lesion.id}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={`absolute border-2 transition-all duration-200 cursor-pointer
-                                  ${risk.color} hover:border-4 hover:shadow-lg`}
-                        style={{
-                          left: `${x * 100}%`,
-                          top: `${y * 100}%`,
-                          width: `${width * 100}%`,
-                          height: `${height * 100}%`,
-                        }}
-                        onClick={() => setSelectedLesion(lesion)}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-sm">
-                        <p className="font-medium">{formatLesionType(lesion.classification)}</p>
-                        <p>Risk Level: {risk.level.toUpperCase()}</p>
-                        <p>Confidence: {Math.round(lesion.confidence * 100)}%</p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </TooltipProvider>
+                  return (
+                    <Tooltip key={lesion.id}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`absolute border-2 transition-all duration-200 cursor-pointer
+                                    ${risk.color} hover:border-4 hover:shadow-lg`}
+                          style={{
+                            left: `${x * 100}%`,
+                            top: `${y * 100}%`,
+                            width: `${width * 100}%`,
+                            height: `${height * 100}%`,
+                          }}
+                          onClick={() => setSelectedLesion(lesion)}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="text-sm">
+                          <p className="font-medium">{formatLesionType(lesion.classification)}</p>
+                          <p>Risk Level: {risk.level.toUpperCase()}</p>
+                          <p>Confidence: {Math.round(lesion.confidence * 100)}%</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </TooltipProvider>
+            </div>
           </div>
         </div>
       </Card>
