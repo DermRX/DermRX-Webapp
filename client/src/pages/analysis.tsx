@@ -7,10 +7,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 import { ResultsDisplay } from "@/components/results-display";
 import { ManualAnnotation } from "@/components/manual-annotation";
-import type { Analysis, DetectedLesion } from "@shared/schema";
+import type { Analysis } from "@shared/schema";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-type AnalysisState = "idle" | "detecting" | "detected" | "analyzing" | "complete";
+type AnalysisState = "idle" | "detecting" | "adjusting" | "analyzing" | "complete";
 
 export default function AnalysisPage() {
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
@@ -29,8 +31,8 @@ export default function AnalysisPage() {
     },
     onSuccess: (data) => {
       setDetectedLesions(data.detectedLesions);
-      setAnalysisState("detected");
-      setProgress(50);
+      setAnalysisState("adjusting");
+      setProgress(40);
     }
   });
 
@@ -41,7 +43,7 @@ export default function AnalysisPage() {
       const res = await apiRequest("POST", "/api/analyze", {
         imageBase64,
         patientId: "demo-patient",
-        lesions: detectedLesions,
+        detectedLesions,
       });
       return res.json() as Promise<Analysis>;
     },
@@ -55,11 +57,11 @@ export default function AnalysisPage() {
   const handleImageSelect = async (base64: string) => {
     setImageBase64(base64);
     setAnalysisState("detecting");
-    setProgress(25);
+    setProgress(20);
     detectMutation.mutate(base64);
   };
 
-  const handleAddManualBox = (box: any) => {
+  const handleAddBox = (box: any) => {
     setDetectedLesions(prev => [
       ...prev,
       {
@@ -67,6 +69,10 @@ export default function AnalysisPage() {
         boundingBox: box
       }
     ]);
+  };
+
+  const handleDeleteBox = (id: string) => {
+    setDetectedLesions(prev => prev.filter(lesion => lesion.id !== id));
   };
 
   return (
@@ -92,29 +98,57 @@ export default function AnalysisPage() {
           </div>
         )}
 
-        {analysisState === "detected" && imageBase64 && (
+        {analysisState === "adjusting" && imageBase64 && (
           <div className="space-y-6">
             <div className="bg-muted/50 rounded-lg p-4">
-              <h2 className="text-lg font-semibold mb-2">Initial Detection Complete</h2>
-              <p className="text-muted-foreground mb-4">
-                We've detected {detectedLesions.length} potential lesion{detectedLesions.length !== 1 ? 's' : ''}.
-                You can manually add more regions if needed.
-              </p>
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-2">Initial Detection Complete</h2>
+                <p className="text-muted-foreground">
+                  We've detected {detectedLesions.length} potential lesion{detectedLesions.length !== 1 ? 's' : ''}.
+                  Please review the detected regions and make any necessary adjustments:
+                </p>
+                <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
+                  <li>Click and drag to draw additional regions if needed</li>
+                  <li>Click on any region to select it, then use the delete button to remove it</li>
+                  <li>Once you're satisfied with the regions, click "Analyze" to proceed</li>
+                </ul>
+              </div>
+
               <ManualAnnotation
                 imageUrl={`data:image/jpeg;base64,${imageBase64}`}
-                onAddBox={handleAddManualBox}
+                existingBoxes={detectedLesions}
+                onAddBox={handleAddBox}
+                onDeleteBox={handleDeleteBox}
               />
             </div>
 
-            <div className="flex justify-end">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please ensure all relevant lesions are marked before proceeding with the analysis.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAnalysisState("idle");
+                  setImageBase64(undefined);
+                  setDetectedLesions([]);
+                  setProgress(0);
+                }}
+              >
+                Cancel
+              </Button>
               <Button
                 onClick={() => analysisMutation.mutate()}
-                disabled={analysisMutation.isPending}
+                disabled={analysisMutation.isPending || detectedLesions.length === 0}
               >
                 {analysisMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Analyze Detected Regions
+                Analyze {detectedLesions.length} Region{detectedLesions.length !== 1 ? 's' : ''}
               </Button>
             </div>
           </div>

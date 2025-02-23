@@ -2,16 +2,32 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 
+interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface ManualAnnotationProps {
   imageUrl: string;
-  onAddBox: (box: { x: number; y: number; width: number; height: number }) => void;
+  existingBoxes: Array<{ id: string; boundingBox: BoundingBox }>;
+  onAddBox: (box: BoundingBox) => void;
+  onDeleteBox: (id: string) => void;
   className?: string;
 }
 
-export function ManualAnnotation({ imageUrl, onAddBox, className = '' }: ManualAnnotationProps) {
+export function ManualAnnotation({ 
+  imageUrl, 
+  existingBoxes, 
+  onAddBox, 
+  onDeleteBox, 
+  className = '' 
+}: ManualAnnotationProps) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [currentBox, setCurrentBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [currentBox, setCurrentBox] = useState<BoundingBox | null>(null);
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -48,15 +64,41 @@ export function ManualAnnotation({ imageUrl, onAddBox, className = '' }: ManualA
     setCurrentBox(null);
   };
 
+  const handleBoxClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setSelectedBoxId(id);
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedBoxId) {
+      onDeleteBox(selectedBoxId);
+      setSelectedBoxId(null);
+    }
+  };
+
   return (
-    <div className={`relative ${className}`}>
-      <div className="absolute top-4 left-4 z-10 bg-background/80 rounded-lg p-2">
-        <Button variant="outline" size="sm" disabled>
-          <Pencil className="h-4 w-4 mr-2" />
-          Drawing Mode
-        </Button>
+    <div className={`space-y-4 ${className}`}>
+      <div className="flex items-center justify-between bg-background/80 rounded-lg p-2">
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled>
+            <Pencil className="h-4 w-4 mr-2" />
+            Drawing Mode
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleDeleteSelected}
+            disabled={!selectedBoxId}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Selected
+          </Button>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Click and drag to draw new regions, click existing regions to select them
+        </p>
       </div>
-      
+
       <div
         ref={containerRef}
         className="relative cursor-crosshair"
@@ -73,7 +115,24 @@ export function ManualAnnotation({ imageUrl, onAddBox, className = '' }: ManualA
           alt="Image for annotation"
           className="w-full rounded-lg"
         />
-        
+
+        {existingBoxes.map(({ id, boundingBox }) => (
+          <div
+            key={id}
+            className={`absolute border-2 transition-all duration-200 cursor-pointer
+                      ${selectedBoxId === id 
+                        ? 'border-primary bg-primary/20' 
+                        : 'border-muted-foreground/50 hover:border-primary'}`}
+            style={{
+              left: `${boundingBox.x * 100}%`,
+              top: `${boundingBox.y * 100}%`,
+              width: `${boundingBox.width * 100}%`,
+              height: `${boundingBox.height * 100}%`,
+            }}
+            onClick={(e) => handleBoxClick(e, id)}
+          />
+        ))}
+
         {currentBox && (
           <div
             className="absolute border-2 border-primary bg-primary/10"
