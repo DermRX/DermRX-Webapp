@@ -1,12 +1,18 @@
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { AlertCircle, AlertTriangle, CheckCircle, Maximize2 } from "lucide-react";
 import type { Analysis, DetectedLesion } from "@shared/schema";
 import { useState } from "react";
+import { LesionModal } from "./lesion-modal";
+import { Button } from "./ui/button";
 
 interface ResultsDisplayProps {
   analysis: Analysis;
-  onLesionSelect?: (lesion: DetectedLesion) => void;
 }
 
 function formatLesionType(type: string): string {
@@ -40,8 +46,9 @@ function getRiskLevel(lesion: DetectedLesion): {
   };
 }
 
-export function ResultsDisplay({ analysis, onLesionSelect }: ResultsDisplayProps) {
+export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
   const [selectedLesion, setSelectedLesion] = useState<DetectedLesion | null>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   if (!analysis.detectedLesions || analysis.detectedLesions.length === 0) {
     return (
@@ -51,100 +58,98 @@ export function ResultsDisplay({ analysis, onLesionSelect }: ResultsDisplayProps
     );
   }
 
+  const highRiskCount = analysis.detectedLesions.filter(
+    l => getRiskLevel(l).level === 'high'
+  ).length;
+
+  const mediumRiskCount = analysis.detectedLesions.filter(
+    l => getRiskLevel(l).level === 'medium'
+  ).length;
+
   return (
     <div className="space-y-6">
-      {/* Image with bounding boxes */}
-      <Card className="p-4">
-        <div className="relative">
-          <img 
-            src={analysis.imageUrl} 
-            alt="Analyzed skin image"
-            className="w-full rounded-lg"
-          />
-          {analysis.detectedLesions.map((lesion) => {
-            const { x, y, width, height } = lesion.boundingBox;
-            const risk = getRiskLevel(lesion);
-            const isSelected = selectedLesion?.id === lesion.id;
-
-            return (
-              <div
-                key={lesion.id}
-                className={`absolute border-2 transition-all duration-200 ${risk.color}
-                          ${isSelected ? 'border-4 shadow-lg' : 'hover:border-4'}`}
-                style={{
-                  left: `${x * 100}%`,
-                  top: `${y * 100}%`,
-                  width: `${width * 100}%`,
-                  height: `${height * 100}%`,
-                }}
-                onClick={() => {
-                  setSelectedLesion(lesion);
-                  onLesionSelect?.(lesion);
-                }}
-              >
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="bg-background border rounded-md shadow-lg p-2 text-sm">
-                    {formatLesionType(lesion.classification)}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
       {/* Analysis Summary */}
       <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Analysis Summary</h3>
-        <div className="space-y-2">
-          <p>
-            Found {analysis.detectedLesions.length} lesion{analysis.detectedLesions.length !== 1 ? 's' : ''}.
-          </p>
-          {analysis.detectedLesions.some(l => getRiskLevel(l).level === 'high') && (
-            <p className="text-red-500 font-semibold">⚠️ High-risk lesions detected</p>
-          )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold">Analysis Summary</h3>
+            <p className="text-muted-foreground mt-2">
+              Found {analysis.detectedLesions.length} lesion{analysis.detectedLesions.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="text-right">
+            {highRiskCount > 0 && (
+              <p className="text-red-500 font-semibold">
+                ⚠️ {highRiskCount} high-risk lesion{highRiskCount !== 1 ? 's' : ''}
+              </p>
+            )}
+            {mediumRiskCount > 0 && (
+              <p className="text-yellow-500 font-semibold">
+                ⚠️ {mediumRiskCount} medium-risk lesion{mediumRiskCount !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
 
-      {/* Detailed Results */}
-      <div className="space-y-4">
-        {analysis.detectedLesions.map((lesion) => {
-          const risk = getRiskLevel(lesion);
-
-          return (
-            <Card 
-              key={lesion.id} 
-              className={`p-6 transition-colors ${
-                selectedLesion?.id === lesion.id ? risk.color : ''
-              }`}
+      {/* Image with bounding boxes */}
+      <Card className="p-4">
+        <div className={`relative ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}>
+          <div className="absolute top-4 right-4 z-10">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsZoomed(!isZoomed)}
             >
-              <div className="flex items-start gap-4">
-                <div>{risk.icon}</div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2">
-                    {formatLesionType(lesion.classification)}
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm text-muted-foreground">Confidence</span>
-                        <span className="text-sm font-medium">
-                          {Math.round(lesion.confidence * 100)}%
-                        </span>
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className={`relative ${isZoomed ? 'overflow-auto h-[80vh]' : ''}`}>
+            <img 
+              src={analysis.imageUrl} 
+              alt="Analyzed skin image"
+              className={`rounded-lg ${isZoomed ? 'scale-150 transform-gpu' : 'w-full'}`}
+            />
+            <TooltipProvider>
+              {analysis.detectedLesions.map((lesion) => {
+                const { x, y, width, height } = lesion.boundingBox;
+                const risk = getRiskLevel(lesion);
+
+                return (
+                  <Tooltip key={lesion.id}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={`absolute border-2 transition-all duration-200 cursor-pointer
+                                  ${risk.color} hover:border-4 hover:shadow-lg`}
+                        style={{
+                          left: `${x * 100}%`,
+                          top: `${y * 100}%`,
+                          width: `${width * 100}%`,
+                          height: `${height * 100}%`,
+                        }}
+                        onClick={() => setSelectedLesion(lesion)}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-sm">
+                        <p className="font-medium">{formatLesionType(lesion.classification)}</p>
+                        <p>Risk Level: {risk.level.toUpperCase()}</p>
+                        <p>Confidence: {Math.round(lesion.confidence * 100)}%</p>
                       </div>
-                      <Progress value={lesion.confidence * 100} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Risk Level: <span className="font-medium">{risk.level.toUpperCase()}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
+          </div>
+        </div>
+      </Card>
+
+      {/* Modal for selected lesion */}
+      <LesionModal
+        lesion={selectedLesion}
+        onClose={() => setSelectedLesion(null)}
+      />
     </div>
   );
 }
