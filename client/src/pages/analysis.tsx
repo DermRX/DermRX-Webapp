@@ -18,6 +18,10 @@ export default function AnalysisPage() {
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
   const [imageBase64, setImageBase64] = useState<string>();
   const [detectedLesions, setDetectedLesions] = useState<Array<{ id: string; boundingBox: any }>>([]);
+const [bodyArea, setBodyArea] = useState<string>("");
+const bodyAreas = [
+  "Face", "Neck", "Chest", "Back", "Arms", "Legs", "Hands", "Feet"
+];
   const [analysisResult, setAnalysisResult] = useState<Analysis>();
   const [progress, setProgress] = useState(0);
 
@@ -85,6 +89,20 @@ export default function AnalysisPage() {
             <p className="text-muted-foreground mb-6">
               Upload a clear image of the skin lesion for AI-powered analysis and detection.
             </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Select Body Area</label>
+              <select 
+                className="w-full p-2 border rounded-md"
+                value={bodyArea}
+                onChange={(e) => setBodyArea(e.target.value)}
+                required
+              >
+                <option value="">Select area...</option>
+                {bodyAreas.map(area => (
+                  <option key={area} value={area}>{area}</option>
+                ))}
+              </select>
+            </div>
             <ImageUpload onImageSelect={handleImageSelect} />
           </>
         )}
