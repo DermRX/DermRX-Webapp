@@ -11,6 +11,7 @@ import { useState, useRef, useEffect } from "react";
 import { LesionModal } from "./lesion-modal";
 import { Button } from "./ui/button";
 import { HeatMapOverlay } from "./heat-map-overlay";
+import { ScheduleAppointment } from "./schedule-appointment";
 
 interface ResultsDisplayProps {
   analysis: Analysis;
@@ -49,10 +50,12 @@ function getRiskLevel(lesion: DetectedLesion): {
 
 export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
   const [selectedLesion, setSelectedLesion] = useState<DetectedLesion | null>(null);
+  const [selectedLesions, setSelectedLesions] = useState<DetectedLesion[]>([]);
   const [isZoomed, setIsZoomed] = useState(false);
   const [isHeatMapVisible, setIsHeatMapVisible] = useState(false);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
 
   if (!analysis.detectedLesions || analysis.detectedLesions.length === 0) {
     return (
@@ -70,6 +73,18 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
     l => getRiskLevel(l).level === 'medium'
   ).length;
 
+  const toggleLesionSelection = (lesion: DetectedLesion) => {
+    if (isMultiSelectMode) {
+      setSelectedLesions(prev =>
+        prev.some(l => l.id === lesion.id)
+          ? prev.filter(l => l.id !== lesion.id)
+          : [...prev, lesion]
+      );
+    } else {
+      setSelectedLesion(lesion);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Analysis Summary */}
@@ -81,17 +96,33 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
               Found {analysis.detectedLesions.length} lesion{analysis.detectedLesions.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <div className="text-right">
-            {highRiskCount > 0 && (
-              <p className="text-red-500 font-semibold">
-                ⚠️ {highRiskCount} high-risk lesion{highRiskCount !== 1 ? 's' : ''}
-              </p>
-            )}
-            {mediumRiskCount > 0 && (
-              <p className="text-yellow-500 font-semibold">
-                ⚠️ {mediumRiskCount} medium-risk lesion{mediumRiskCount !== 1 ? 's' : ''}
-              </p>
-            )}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              {highRiskCount > 0 && (
+                <p className="text-red-500 font-semibold">
+                  ⚠️ {highRiskCount} high-risk lesion{highRiskCount !== 1 ? 's' : ''}
+                </p>
+              )}
+              {mediumRiskCount > 0 && (
+                <p className="text-yellow-500 font-semibold">
+                  ⚠️ {mediumRiskCount} medium-risk lesion{mediumRiskCount !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMultiSelectMode(!isMultiSelectMode)}
+              >
+                {isMultiSelectMode ? "Exit Selection" : "Select Multiple"}
+              </Button>
+              {isMultiSelectMode && (
+                <ScheduleAppointment
+                  selectedLesions={selectedLesions} // Corrected prop passing
+                />
+              )}
+            </div>
           </div>
         </div>
       </Card>
@@ -146,20 +177,24 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
                 {!isHeatMapVisible && analysis.detectedLesions.map((lesion) => {
                   const { x, y, width, height } = lesion.boundingBox;
                   const risk = getRiskLevel(lesion);
+                  const isSelected = isMultiSelectMode
+                    ? selectedLesions.some(l => l.id === lesion.id)
+                    : selectedLesion?.id === lesion.id;
 
                   return (
                     <Tooltip key={lesion.id}>
                       <TooltipTrigger asChild>
                         <div
                           className={`absolute border-2 transition-all duration-200 cursor-pointer
-                                    ${risk.color} hover:border-4 hover:shadow-lg`}
+                                    ${risk.color} ${isSelected ? 'border-4 shadow-lg' : ''}
+                                    hover:border-4 hover:shadow-lg`}
                           style={{
                             left: `${x * 100}%`,
                             top: `${y * 100}%`,
                             width: `${width * 100}%`,
                             height: `${height * 100}%`,
                           }}
-                          onClick={() => setSelectedLesion(lesion)}
+                          onClick={() => toggleLesionSelection(lesion)}
                         />
                       </TooltipTrigger>
                       <TooltipContent>
