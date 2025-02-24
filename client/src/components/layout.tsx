@@ -6,7 +6,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="border-b">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/">
-            <a className="text-2xl font-bold text-primary">MelanomaAI</a>
+            <a className="text-2xl font-bold text-primary">DermRX</a>
           </Link>
           <nav className="flex gap-4">
             <Link href="/">
