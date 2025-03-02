@@ -1,3 +1,5 @@
+import { Config } from "@netlify/functions";
+
 const FASTAPI_URL = "https://dermrx-ai-production.up.railway.app";
 
 export async function handler(event) {
@@ -23,3 +25,7 @@ export async function handler(event) {
     };
   }
 }
+
+export const config: Config = {
+    path: "/api/detect"
+};
