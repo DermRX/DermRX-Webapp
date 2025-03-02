@@ -126,6 +126,24 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
           </div>
         </div>
       </Card>
+      {/* Risk Level Legend */}
+    <Card className="p-4">
+    <h3 className="text-lg font-semibold mb-2">Risk Level Legend</h3>
+    <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+        <AlertCircle className="w-5 h-5 text-red-500" />
+        <span className="text-red-500 font-medium">High Risk</span>
+        </div>
+        <div className="flex items-center gap-2">
+        <AlertTriangle className="w-5 h-5 text-yellow-500" />
+        <span className="text-yellow-500 font-medium">Medium Risk</span>
+        </div>
+        <div className="flex items-center gap-2">
+        <CheckCircle className="w-5 h-5 text-green-500" />
+        <span className="text-green-500 font-medium">Low Risk</span>
+        </div>
+    </div>
+    </Card>
 
       {/* Image with bounding boxes */}
       <Card className="p-4">
@@ -216,6 +234,7 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
       {/* Modal for selected lesion */}
       <LesionModal
         lesion={selectedLesion}
+        imageUrl={analysis.imageUrl}
         onClose={() => setSelectedLesion(null)}
       />
     </div>

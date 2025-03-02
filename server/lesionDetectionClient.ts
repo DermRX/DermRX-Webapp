@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const FASTAPI_URL = "http://127.0.0.1:8000";
+const FASTAPI_URL = "https://dermrx-ai-production.up.railway.app";
 
 export async function detectLesions(imageBase64: string) {
   try {

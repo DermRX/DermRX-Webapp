@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { ImageUpload } from "@/components/image-upload";
+import { ImageUpload } from "@/components/image-upload/image-upload";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
@@ -11,10 +11,14 @@ import type { Analysis } from "@shared/schema";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { AppContext } from "@/context/AppContext";
+import { ImageUploadPatient } from "@/components/image-upload/image-upload-patient";
+import { fetchImage } from "@/services/api";
 
 type AnalysisState = "idle" | "detecting" | "adjusting" | "analyzing" | "complete";
 
 export default function AnalysisPage() {
+  const appContext = useContext(AppContext);
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
   const [imageBase64, setImageBase64] = useState<string>();
   const [detectedLesions, setDetectedLesions] = useState<Array<{ id: string; boundingBox: any }>>([]);
@@ -24,6 +28,16 @@ const bodyAreas = [
 ];
   const [analysisResult, setAnalysisResult] = useState<Analysis>();
   const [progress, setProgress] = useState(0);
+
+  useEffect(()=> {
+    console.log(detectedLesions);
+
+  }, [detectedLesions]);
+
+  useEffect(()=> {
+    console.log(analysisResult);
+
+  }, [analysisResult]);
 
   // Detection mutation
   const detectMutation = useMutation({
@@ -87,6 +101,9 @@ const bodyAreas = [
 
         {analysisState === "idle" && (
           <>
+           {() => {
+            console.log(appContext.patient)
+           }}
             <p className="text-muted-foreground mb-6">
               Upload a clear image of the skin lesion for AI-powered analysis and detection.
             </p>
@@ -104,7 +121,11 @@ const bodyAreas = [
                 ))}
               </select>
             </div>
-            <ImageUpload onImageSelect={handleImageSelect} />
+            {
+                appContext.patientFhirId ? 
+                    <ImageUploadPatient onImageSelect={handleImageSelect}/>:
+                    <ImageUpload onImageSelect={handleImageSelect} /> 
+            }
           </>
         )}
 

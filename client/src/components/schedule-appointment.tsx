@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,34 +10,18 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useState } from "react";
-import { Clock, Calendar as CalendarIcon, Trash2 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import { Clock, Calendar as CalendarIcon } from "lucide-react";
 
 interface ScheduleAppointmentProps {
-  lesionId?: string;
   classification?: string;
-  selectedLesions?: Array<{
-    id: string;
-    classification: string;
-    boundingBox: {
-      x: number;
-      y: number;
-    };
-  }>;
 }
 
-export function ScheduleAppointment({ 
-  lesionId, 
-  classification,
-  selectedLesions = []
-}: ScheduleAppointmentProps) {
+export function ScheduleAppointment({ classification }: ScheduleAppointmentProps) {
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedForMonitoring, setSelectedForMonitoring] = useState<string[]>(
-    lesionId ? [lesionId] : []
-  );
+  const [open, setOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const timeSlots = [
     "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
@@ -48,28 +31,14 @@ export function ScheduleAppointment({
 
   const handleSubmit = () => {
     setIsSubmitting(true);
-    // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      // Here you would typically make an API call to save the appointment
-      console.log("Appointment scheduled for:", { 
-        date, 
-        timeSlot, 
-        lesionsToMonitor: selectedForMonitoring 
-      });
+      setShowSuccess(true);
     }, 1000);
   };
 
-  const toggleLesionSelection = (id: string) => {
-    setSelectedForMonitoring(prev => 
-      prev.includes(id) 
-        ? prev.filter(lesionId => lesionId !== id)
-        : [...prev, id]
-    );
-  };
-
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <CalendarIcon className="h-4 w-4 mr-2" />
@@ -80,53 +49,12 @@ export function ScheduleAppointment({
         <DialogHeader>
           <DialogTitle>Schedule Follow-up Appointment</DialogTitle>
           <DialogDescription>
-            {selectedLesions.length > 0 
-              ? "Select lesions to monitor and schedule a follow-up examination."
-              : `Schedule a follow-up examination for the detected ${classification}.`
-            }
+            Schedule a follow-up examination for the selected lesions.
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
           <div className="space-y-4">
-            {selectedLesions.length > 0 && (
-              <div>
-                <h4 className="mb-2 text-sm font-medium">Select Lesions to Monitor</h4>
-                <ScrollArea className="h-[100px] rounded-md border p-2">
-                  <div className="space-y-2">
-                    {selectedLesions.map((lesion) => (
-                      <div 
-                        key={lesion.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant={selectedForMonitoring.includes(lesion.id) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => toggleLesionSelection(lesion.id)}
-                          >
-                            {selectedForMonitoring.includes(lesion.id) ? "Selected" : "Select"}
-                          </Button>
-                          <span className="text-sm">
-                            {lesion.classification.split('_').map(word => 
-                              word.charAt(0).toUpperCase() + word.slice(1)
-                            ).join(' ')}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          Position: {Math.round(lesion.boundingBox.x * 100)}%, 
-                          {Math.round(lesion.boundingBox.y * 100)}%
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Selected: {selectedForMonitoring.length} lesion(s)
-                </p>
-              </div>
-            )}
-
             <div>
               <h4 className="mb-2 text-sm font-medium">Select Date</h4>
               <Calendar
@@ -159,12 +87,7 @@ export function ScheduleAppointment({
 
             <Button
               className="w-full"
-              disabled={
-                !date || 
-                !timeSlot || 
-                isSubmitting || 
-                (selectedLesions.length > 0 && selectedForMonitoring.length === 0)
-              }
+              disabled={!date || !timeSlot || isSubmitting}
               onClick={handleSubmit}
             >
               {isSubmitting ? "Scheduling..." : "Schedule Appointment"}
@@ -172,6 +95,22 @@ export function ScheduleAppointment({
           </div>
         </div>
       </DialogContent>
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Appointment Booked</DialogTitle>
+            <DialogDescription>
+              Your appointment has been successfully scheduled for {date && format(date, "PPPP")} at {timeSlot}.
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => { 
+            setShowSuccess(false);
+            setOpen(false);
+          }}>
+            Close
+          </Button>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
