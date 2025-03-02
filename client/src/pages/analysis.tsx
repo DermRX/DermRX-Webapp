@@ -48,6 +48,7 @@ const bodyAreas = [
       return res.json();
     },
     onSuccess: (data) => {
+        console.log(data)
       setDetectedLesions(data.detectedLesions);
       setAnalysisState("adjusting");
       setProgress(40);
