@@ -5,7 +5,7 @@ const FASTAPI_URL = "https://dermrx-ai-production.up.railway.app";
 export async function handler(event) {
   try {
     const { imageBase64, patientId, detectedLesions } = JSON.parse(event.body);
-    const analysis = await fetch(`${FASTAPI_URL}/analyze`, {
+    const response = await fetch(`${FASTAPI_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -14,9 +14,12 @@ export async function handler(event) {
             detectedLesions 
           }),
       });
+
+    const data = await response.json();
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(analysis),
+      body: JSON.stringify(data),
     };
   } catch (error) {
     return {
