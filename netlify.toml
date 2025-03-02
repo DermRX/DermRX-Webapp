@@ -1,9 +1,0 @@
-[build]
-  functions = "netlify/functions"
-  publish = "dist"  # Ensure your Vite build output is deployed
-
-[[redirects]]
-  force = true
-  from = "/api/*"
-  status = 200
-  to = "/.netlify/functions/api/:splat"
