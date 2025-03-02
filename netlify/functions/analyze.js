@@ -1,4 +1,4 @@
-import { analyzeLesions } from "./lesionDetectionClient"
+import { analyzeLesions } from "./lesionDetectionClient.js"
 
 export async function handler(event) {
   try {
