@@ -1,0 +1,16 @@
+[build]
+  functions = "netlify/functions"
+  publish = "dist"  # Ensure your Vite build output is deployed
+
+# Redirect API calls to Netlify Functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# Ensure all non-API requests go to index.html (for SPA routing)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
