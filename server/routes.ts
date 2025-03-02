@@ -4,13 +4,9 @@ import { storage } from "./storage";
 import { createServer } from "http";
 
 export async function registerRoutes(app: Express) {
-    console.log("Registered routes:", app._router.stack
-        .filter(r => r.route)
-        .map(r => r.route.path)
-        );
-        console.log('blahblahablah');
+  console.log('blahblahablah');
   app.post("/api/detect", async (req, res) => {
-    console.log('blahblahablah');
+    console.log('blahblahablah2');
     try {
       const { imageBase64 } = req.body;
       const detectedLesions = await detectLesions(imageBase64);

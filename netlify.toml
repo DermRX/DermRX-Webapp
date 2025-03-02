@@ -3,13 +3,7 @@
   publish = "dist"  # Ensure your Vite build output is deployed
 
 [[redirects]]
+  force = true
   from = "/api/*"
-  to = "/.netlify/functions/api"
   status = 200
-  force = true  # Ensure Netlify forces this redirect
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = true  # Ensures SPA routing works correctly
+  to = "/.netlify/functions/api/:splat"
