@@ -1,9 +1,17 @@
-import { analyzeLesions } from "./lesionDetectionClient.js"
+const FASTAPI_URL = "https://dermrx-ai-production.up.railway.app";
 
 export async function handler(event) {
   try {
     const { imageBase64, patientId, detectedLesions } = JSON.parse(event.body);
-    const analysis = await analyzeLesions(imageBase64, patientId, detectedLesions);
+    const analysis = await fetch(`${FASTAPI_URL}/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            imageBase64, 
+            patientId, 
+            detectedLesions 
+          }),
+      });
     return {
       statusCode: 200,
       body: JSON.stringify(analysis),

@@ -1,7 +1,3 @@
-[build]
-  functions = "netlify/functions"
-  publish = "dist"  # Ensure your Vite build output is deployed
-
 # Redirect API calls to Netlify Functions
 [[redirects]]
   from = "/api/*"
