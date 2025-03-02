@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 
@@ -24,14 +24,17 @@ export function ManualAnnotation({
   onDeleteBox, 
   className = '' 
 }: ManualAnnotationProps) {
+  const [drawingMode, setDrawingMode] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [currentBox, setCurrentBox] = useState<BoundingBox | null>(null);
   const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  console.log('hehe');
+  console.log(existingBoxes);
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!drawingMode || !containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
@@ -42,7 +45,7 @@ export function ManualAnnotation({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDrawing || !containerRef.current) return;
+    if (!drawingMode || !isDrawing || !containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const currentX = (e.clientX - rect.left) / rect.width;
@@ -57,7 +60,7 @@ export function ManualAnnotation({
   };
 
   const handleMouseUp = () => {
-    if (currentBox) {
+    if (drawingMode && currentBox) {
       onAddBox(currentBox);
     }
     setIsDrawing(false);
@@ -80,9 +83,13 @@ export function ManualAnnotation({
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between bg-background/80 rounded-lg p-2">
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setDrawingMode(!drawingMode)}
+          >
             <Pencil className="h-4 w-4 mr-2" />
-            Drawing Mode
+            {drawingMode ? "Disable" : "Enable"} Drawing Mode
           </Button>
           <Button 
             variant="outline" 
@@ -95,13 +102,15 @@ export function ManualAnnotation({
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Click and drag to draw new regions, click existing regions to select them
+          {drawingMode 
+            ? "Click and drag to draw new regions" 
+            : "Enable drawing mode to annotate"}
         </p>
       </div>
 
       <div
         ref={containerRef}
-        className="relative cursor-crosshair"
+        className={`relative ${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -119,10 +128,10 @@ export function ManualAnnotation({
         {existingBoxes.map(({ id, boundingBox }) => (
           <div
             key={id}
-            className={`absolute border-2 transition-all duration-200 cursor-pointer
+            className={`absolute border-2 transition-all duration-75 cursor-pointer
                       ${selectedBoxId === id 
                         ? 'border-primary bg-primary/20' 
-                        : 'border-muted-foreground/50 hover:border-primary'}`}
+                        : 'border-muted-foreground/80 hover:border-primary'}`}
             style={{
               left: `${boundingBox.x * 100}%`,
               top: `${boundingBox.y * 100}%`,
@@ -133,7 +142,7 @@ export function ManualAnnotation({
           />
         ))}
 
-        {currentBox && (
+        {currentBox && drawingMode && (
           <div
             className="absolute border-2 border-primary bg-primary/10"
             style={{

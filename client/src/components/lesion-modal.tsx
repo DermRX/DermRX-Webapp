@@ -9,9 +9,11 @@ import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
 import { LesionTracking } from "./lesion-tracking";
 import { ScheduleAppointment } from "./schedule-appointment";
 import type { DetectedLesion } from "@shared/schema";
+import { useEffect, useState } from "react";
 
 interface LesionModalProps {
   lesion: DetectedLesion | null;
+  imageUrl: string;
   onClose: () => void;
 }
 
@@ -50,21 +52,20 @@ function getRiskLevel(lesion: DetectedLesion): {
   };
 }
 
-export function LesionModal({ lesion, onClose }: LesionModalProps) {
+export function LesionModal({ lesion, imageUrl, onClose }: LesionModalProps) {
   if (!lesion) return null;
 
   const risk = getRiskLevel(lesion);
-
   return (
     <Dialog open={!!lesion} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             {risk.icon}
             <span>{formatLesionType(lesion.classification)}</span>
           </DialogTitle>
           <div className="mt-4">
-            <LesionTracking lesion={lesion} />
+            <LesionTracking lesion={lesion} imageUrl={imageUrl}/>
           </div>
         </DialogHeader>
 
