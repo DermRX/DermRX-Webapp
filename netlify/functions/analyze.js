@@ -1,4 +1,4 @@
-import { analyzeLesions } from "../../server/lesionDetectionClient";
+import { analyzeLesions } from "./lesionDetectionClient"
 
 export async function handler(event) {
   try {
