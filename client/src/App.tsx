@@ -7,6 +7,8 @@ import Analysis from "@/pages/analysis";
 import NotFound from "@/pages/not-found";
 import Launch from "@/pages/launch";
 import LoginCallback from "./pages/login-callback";
+import TermsAndConditions from "./pages/terms-and-conditions";
+import PrivacyPolicy from "./pages/privacy-policy";
 
 function Router() {
   return (
@@ -15,6 +17,8 @@ function Router() {
       <Route path="/analysis" component={Analysis} />
       <Route path="/launch" component={Launch} />
       <Route path="/login-callback" component={LoginCallback} />
+      <Route path="/terms-and-conditions" component={TermsAndConditions} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route component={NotFound} />
     </Switch>
   );
