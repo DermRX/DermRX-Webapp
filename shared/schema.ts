@@ -10,6 +10,11 @@ export type BoundingBox = {
   height: number;
 };
 
+export type Prediction = {
+    label: string; 
+    score: number;
+  };
+
 export type LesionType = 
   | "melanoma" 
   | "nevus"
@@ -28,6 +33,7 @@ export type DetectedLesion = {
     lastChecked: string;
     growthRate: number;
   };
+  predictions: Prediction[]
 };
 
 export type AnalysisMetadata = {
