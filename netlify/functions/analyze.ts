@@ -1,13 +1,15 @@
 import { Config } from "@netlify/functions";
 
-const FASTAPI_URL = "https://dermrx-ai-production.up.railway.app";
+// const FASTAPI_URL = "https://dermrx-ai-production.up.railway.app";
+const FASTAPI_URL = "https://soul0101-dermrx-ai-service.hf.space";
+const HF_API_KEY = process.env.HF_API_KEY;
 
 export async function handler(event) {
   try {
     const { imageBase64, patientId, detectedLesions } = JSON.parse(event.body);
     const response = await fetch(`${FASTAPI_URL}/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${HF_API_KEY}`},
         body: JSON.stringify({ 
             imageBase64, 
             patientId, 
