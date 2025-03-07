@@ -5,7 +5,7 @@ const SECONDARY_API_URL = "https://soul0101-dermrx-ai-service.hf.space"; // Fall
 const HF_API_KEY = process.env.HF_API_KEY;
 
 // Helper function to fetch with timeout
-async function fetchWithTimeout(url, options, timeout = 10000) {
+async function fetchWithTimeout(url, options, timeout = 15000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
