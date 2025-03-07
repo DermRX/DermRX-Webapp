@@ -29,16 +29,6 @@ const bodyAreas = [
   const [analysisResult, setAnalysisResult] = useState<Analysis>();
   const [progress, setProgress] = useState(0);
 
-  useEffect(()=> {
-    console.log(detectedLesions);
-
-  }, [detectedLesions]);
-
-  useEffect(()=> {
-    console.log(analysisResult);
-
-  }, [analysisResult]);
-
   // Detection mutation
   const detectMutation = useMutation({
     mutationFn: async (base64: string) => {
@@ -100,9 +90,6 @@ const bodyAreas = [
 
         {analysisState === "idle" && (
           <>
-           {() => {
-            console.log(appContext.patient)
-           }}
             <p className="text-muted-foreground mb-6">
               Upload a clear image of the skin lesion for AI-powered analysis and detection.
             </p>

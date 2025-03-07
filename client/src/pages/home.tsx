@@ -11,7 +11,6 @@ import IMeldRxLaunchData from '@/config/IMeldRxLaunchData';
 export default function Home(){
     const appContext = useContext(AppContext);
     const onLaunchClick = useCallback(() => {
-        console.log(launchOption);
         const fhirUrl = launchOption.workspaceUrl;
         FHIR.oauth2.authorize({
             clientId: launchOption.clientId,

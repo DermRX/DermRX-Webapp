@@ -13,7 +13,6 @@ export interface AuthResponse {
    * Fetches an authentication token using client credentials.
    */
 export const fetchAuthToken = async (): Promise<string> => {
-    console.log(`${MELDRX_BASE_URL}/connect/token`)
     const response = await fetch(`${MELDRX_BASE_URL}/connect/token`, {
     method: "POST",
     headers: {

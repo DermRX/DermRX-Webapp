@@ -31,8 +31,6 @@ export function ManualAnnotation({
   const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  console.log('hehe');
-  console.log(existingBoxes);
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!drawingMode || !containerRef.current) return;
 

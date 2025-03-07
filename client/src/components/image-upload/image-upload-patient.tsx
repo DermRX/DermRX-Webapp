@@ -25,7 +25,6 @@ export function ImageUploadPatient({ onImageSelect }: ImageUploadProps) {
       const loadImages = async () => {
           setIsLoadingImage(true);
           const newImageMap: Record<string, string> = {};
-          console.log(documents);
           // Loop through documents sequentially or in parallel:
           await Promise.all(
               documents.map(async (doc) => {
