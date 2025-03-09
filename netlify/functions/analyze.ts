@@ -1,7 +1,7 @@
 import { Config } from "@netlify/functions";
 
-const PRIMARY_API_URL = "https://8000-dep-01jnqtbwrmqd497brs9cvd73ab-d.cloudspaces.litng.ai";
-const SECONDARY_API_URL = "https://soul0101-dermrx-ai-service.hf.space"; // Fallback
+const PRIMARY_API_URL = "https://soul0101-dermrx-ai-service.hf.space";
+const SECONDARY_API_URL = "https://8000-dep-01jnqtbwrmqd497brs9cvd73ab-d.cloudspaces.litng.ai"; // Fallback
 const HF_API_KEY = process.env.HF_API_KEY;
 
 // Helper function to fetch with timeout
